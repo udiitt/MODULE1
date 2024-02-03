@@ -1,0 +1,53 @@
+const int motionPin = 8;
+const int buttonPin = 2;
+const int ultrasonicLED = 4;  // Here, I used LED for Ultrasonic Sensor indication
+const int triggerPin = 7;  
+const int echoPin = 6;  
+int currentSensor = 1;  
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(motionPin, INPUT);
+  pinMode(buttonPin, INPUT_PULLUP);
+  pinMode(ultrasonicLED, OUTPUT);  
+  pinMode(triggerPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  attachInterrupt(digitalPinToInterrupt(buttonPin), toggleSensor, FALLING);
+}
+
+void loop() {
+  if (currentSensor == 1) {
+    int motionState = digitalRead(motionPin);  
+    if (motionState == HIGH) {
+      Serial.println("MOTION DETECTED.STAY ALERT!!");
+    } else {
+      Serial.println("CHILL!! THERE'S NO MOTION");
+    }
+  } else if (currentSensor == 2) {
+    digitalWrite(ultrasonicLED, HIGH);  // Turn on Ultrasonic LED
+    int distance = getDistance();
+    Serial.print("DISTANCE: ");
+    Serial.println(distance);
+  }
+  delay(1000);
+}
+
+void toggleSensor() {
+  if (currentSensor == 1) {
+    Serial.println("**** ULTRASONIC MODE ACTIVATED ****");
+    currentSensor = 2;
+  } else {
+    Serial.println("**** MOTION MODE ACTIVATED ****");
+    currentSensor = 1;
+    digitalWrite(ultrasonicLED, LOW);//we will turn off led when we sitch to motion.
+  }
+}
+
+int getDistance() {
+  digitalWrite(triggerPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(triggerPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(triggerPin, LOW);
+  return pulseIn(echoPin, HIGH) * 0.034 / 2;
+}
