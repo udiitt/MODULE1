@@ -1,0 +1,42 @@
+// Defining pin numbers for push button and LED.
+const uint8_t BTN_PIN = 2;  
+const uint8_t LED_PIN = 13;
+
+//Variables to store the previous state of the button and current state of the LED.
+uint8_t buttonPrevState = LOW; 
+uint8_t ledState = LOW;        
+
+//Making a function "Setup"
+void setup()
+{
+    //Setting the button pin as input.
+    pinMode(BTN_PIN, INPUT_PULLUP);
+    // Setting the LED pin as output
+    pinMode(LED_PIN, OUTPUT);
+    // Initialize serial communication at 9600 bps
+    Serial.begin(9600);              
+}
+
+void loop()
+{
+    // Reading the current state of the button
+    uint8_t buttonState = digitalRead(BTN_PIN);
+
+
+    Serial.print(buttonState);     // Printing the current state of the button.
+    Serial.print(buttonPrevState); // Printing the previous state of the button.
+    Serial.print(ledState);         // Printing the current state of the LED.
+    Serial.println("");             // Printing a newline.
+
+    //loop.
+    if (buttonState != buttonPrevState) // Checking if the current button state is different from previous.
+    {
+        ledState = !ledState;         //Checking same for the state of the LED
+        digitalWrite(LED_PIN, ledState); // Update the LED state as a result.
+    }
+
+    buttonPrevState = buttonState;  // Also updating the previous state of the button
+
+    // Putting a delay of 500 milliseconds
+    delay(500);
+}
