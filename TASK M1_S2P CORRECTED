@@ -1,0 +1,40 @@
+const uint8_t BTN_PIN = 2;
+const uint8_t LED_PIN = 13;
+
+uint8_t buttonPrevState = LOW;
+uint8_t ledState = LOW;
+unsigned long RecentTime = 0;
+const unsigned long TimeForUpdate = 500;  // Update every 500 milliseconds
+
+void setup()
+{
+  pinMode(BTN_PIN, INPUT_PULLUP);
+  pinMode(LED_PIN, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop()
+{
+  uint8_t buttonState = digitalRead(BTN_PIN);
+
+  Serial.print(buttonState);
+  Serial.print(buttonPrevState);
+  Serial.print(ledState);
+  Serial.println("");
+
+  if (buttonState != buttonPrevState)
+  {
+    ledState = !ledState;
+    digitalWrite(LED_PIN, ledState);
+  }
+
+  buttonPrevState = buttonState;
+
+  // Checking if the specified interval has passed by.
+  if (millis() - RecentTime >= TimeForUpdate)
+  {
+    RecentTime = millis();  // Update the last update time
+
+
+  }
+}
