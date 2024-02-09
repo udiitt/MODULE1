@@ -1,0 +1,87 @@
+
+const int pirSensor = 2;       // Pin for motion sensor 1
+const int buzzer = 7;             // Pin for buzzer
+const int tilter = 3;         // Pin for tilt sensor
+const int pirSensor2 = 4;      // Pin for motion sensor 2
+int led = 13;                      // Pin for red LED
+int Bl_led = 11;                  // Pin for blue LED
+const int Gr_led = PB4;          // Pin for green LED
+
+// Variables to store sensor states
+uint8_t motionState, tiltState, motionState2 = 0;
+
+// Variables to store previous sensor states
+uint8_t premotion, premotion1, premotion2 = 0;
+
+
+const uint16_t timer = 0;          // Timer counter
+const uint16_t compare = 31250;    // Timer compare threshold
+
+void setup() {
+  Serial.begin(9600);    
+  
+  // Set pin modes
+  pinMode(buzzer, OUTPUT);
+  pinMode(led, OUTPUT);
+  pinMode(Bl_led, OUTPUT);
+  pinMode(tilter, INPUT_PULLUP);
+  pinMode(pirSensor, INPUT);
+  pinMode(pirSensor2, INPUT);
+  DDRB |= (1 << Gr_led);         // Set green LED pin as output
+  
+  // Enable Pin Change Interrupts for pins 10-13 
+  PCICR |= 0b00000111;
+  PCMSK2 |= 0b10011100;
+  
+  
+  TCCR1A = 0;
+  TCCR1B |= (1 << CS12);         
+  TCCR1B &= ~(1 << CS11);
+  TCCR1B &= ~(1 << CS10);
+  
+  TCNT1 = timer;                    // Initialize timer
+  OCR1A = compare;                  // Set compare threshold
+  
+  TIMSK1 = (1 << OCIE1A);           // Enable Timer1 Compare A interrupt
+  
+  // Enable interrupts
+  sei();
+}
+
+void loop() {
+  // Check for changes in sensor states and update LED/buzzer accordingly
+  if (premotion != motionState) {
+    digitalWrite(led, motionState);
+    Serial.println("Motion Sensor 1 Activated: ALL REDDDDDD");
+    premotion = motionState;
+  }
+  
+  if (premotion1 != motionState2) {
+    digitalWrite(Bl_led, motionState2);
+    Serial.println("Motion Sensor 2 Activated: ALL BLUUUEEE");
+    premotion1 = motionState2;
+  }
+
+  if (premotion2 != tiltState) {
+    digitalWrite(buzzer, tiltState);
+    Serial.println("Tilt Sensor Activated - SOUNDS GREEEN");
+    premotion2 = tiltState;
+  }
+  
+  delay(200); // Delay to avoid reading the sensors too quickly
+}
+
+
+ISR(PCINT2_vect) {
+  // Read sensor states when interrupt occurs
+  motionState = PIND & B00010000;   // Mask to get the state of motion sensor 1
+  motionState2 = PIND & B00000100;  // Mask to get the state of motion sensor 2
+  tiltState = PIND & B00001000;     // Mask to get the state of tilt sensor
+}
+
+// Interrupt service routine for Timer1 Compare A interrupt
+ISR(TIMER1_COMPA_vect) {
+  // Reset timer and toggle green LED pin state
+  TCNT1 = timer;
+  PORTB ^= (1 << Gr_led);
+}
